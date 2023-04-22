@@ -18,6 +18,9 @@ void main() async {
   await FirebaseMessaging.instance.getInitialMessage();
   await CacheHelper.init();
 
+  var token = await FirebaseMessaging.instance.getToken();
+  print("Token is: $token");
+
   Bloc.observer = MyBlocObserver();
 
   uid = CacheHelper.getData(key: 'uid') ?? '';

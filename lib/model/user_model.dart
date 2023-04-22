@@ -4,6 +4,7 @@ class UserModel {
   String? uid;
   String? bio;
   String? profilePic;
+  String? token;
   bool? isFriend;
 
   UserModel({
@@ -12,6 +13,7 @@ class UserModel {
     this.uid,
     this.bio,
     this.profilePic,
+    this.token,
     this.isFriend,
 });
 
@@ -21,6 +23,7 @@ class UserModel {
     uid =json['uid'];
     bio =json['bio'];
     profilePic =json['picURL'];
+    token =json['token'];
     isFriend = json['isFriend'];
   }
 
@@ -31,6 +34,7 @@ class UserModel {
       'uid' : uid,
       'bio' : bio,
       'picURL' : profilePic,
+      'token' : token,
       'isFriend' : isFriend,
     };
   }

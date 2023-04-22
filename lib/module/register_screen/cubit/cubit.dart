@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:we_need_to_talk/model/user_model.dart';
@@ -45,17 +46,18 @@ class RegisterCubit extends Cubit<RegisterStates>{
 ////////////////////////
 
 // // Create User Firebase Firestore Data
-  void createUser({
+  Future<void> createUser({
     required String username,
     required String phone,
     required String uid,
-}){
+}) async {
     UserModel userModel = UserModel(
       username: username,
       uid: uid,
       phone: phone,
       bio: 'Write your bio...',
       profilePic: 'https://img.freepik.com/free-vector/cute-duck-with-umbrella-rain-cartoon-icon-illustration_138676-2693.jpg?w=740&t=st=1674943223~exp=1674943823~hmac=d427cfe27c2dc13cdbaec26a3c3896286b85fe3dee243a76a9a3ad60ac438522',
+      token: await FirebaseMessaging.instance.getToken(),
       isFriend: false,
     );
     FirebaseFirestore.instance.collection('users').doc(uid).set(userModel.toMap())

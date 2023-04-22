@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:we_need_to_talk/layout/cubit/states.dart';
 import 'package:we_need_to_talk/model/message_model.dart';
@@ -132,6 +135,7 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
 
   // SingOut
   void singOut() {
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'token': ''});
     CacheHelper.removeData(key: 'uid').then((value) {
       emit(SignOutSuccessState());
     });
@@ -256,12 +260,12 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
   ///////////////////////////////////
 
   //Send Message to DB
-  void sendMessage({
+  Future<void> sendMessage({
     required String message,
     required String dateTimeForOrder,
     required String dateTimeForShow,
     required String receiverID,
-  }){
+  }) async {
 
     MessageModel messageModel = MessageModel(
       message: message,
@@ -283,9 +287,71 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
       emit(SendMessageErrorState(error.toString()));
     });
 
+    String? token;
+    await FirebaseFirestore.instance.collection('users').doc(receiverID).get().then((value) {
+      token = value.get('token').toString();
+    });
+    print("Receiver Token is: $token");
+
+    sendPushNotification(token: token!, title: originalUser!.username!, msg: message);
+
     setHallway();
   }
   ///////////////////////////////////
+
+  Future<void> sendPushNotification({
+    required String token,
+    required String title,
+    required String msg,
+}) async {
+    try{
+      final body =
+      {
+        "to": token,
+        "notification":
+        {
+          "title": title,
+          "body": msg,
+          "sound": "default"
+        },
+        "android":
+        {
+          "priority": "HIGH",
+          "notification":
+          {
+            "notificaton_priority": "PRIORITY_MAX",
+            "sound": "default",
+            "default_sound": true,
+            "default_vibrate_timings": true,
+            "default_light_settings": true
+          }
+
+        },
+        "data":
+        {
+          "type": "order",
+          "id": "87",
+          "click_action": "FLUTTER_NOTIFICATION_CLICK"
+        }
+
+      };
+
+      var res = await post(
+        Uri.parse("https://fcm.googleapis.com/fcm/send"),
+        headers: {
+          HttpHeaders.contentTypeHeader: "application/json",
+          HttpHeaders.authorizationHeader: "key=AAAAUXzbnEA:APA91bGwykYk9c6rI_VDyus4liiIkaNdesE7dTXAsHj2bf_xcIiFu9gqa2JomPvOpJr6t93xVrqXUSE_sbxVA-cl5PPy-SkAfRJ9WeGCGO27IpMTAGAyNae8YTIr_IvTbAy6q17fgL7V"
+        },
+        body: jsonEncode(body),
+      );
+      log('Response status: ${res.statusCode}');
+      log('Response body: ${res.body}');
+    } catch (e) {
+      log('\nSendPushNotificationError: $e');
+    }
+  }
+
+
 
   // Get Messages from DB
   List<MessageModel> reversedChat = [];
