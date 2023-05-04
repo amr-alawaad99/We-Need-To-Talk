@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_list/chat_list.dart';
-import 'package:intl/intl.dart';
 import 'package:we_need_to_talk/layout/cubit/cubit.dart';
 import 'package:we_need_to_talk/layout/cubit/states.dart';
 import 'package:we_need_to_talk/model/message_model.dart';
@@ -63,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     Expanded(
                       child: ChatList(
-                        onMsgKey: (index) => ChatAppCubit.get(context).reversedChat[index].dateTimeForOrder!,
+                        onMsgKey: (index) => ChatAppCubit.get(context).reversedChat[index].dateTime!,
                         itemBuilder: (context, index) {
                           if(ChatAppCubit.get(context).reversedChat[index].senderId == uid){
                                   return buildSentMessages(ChatAppCubit.get(context).reversedChat[index]);
@@ -115,8 +114,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             onPressed: () {
                               ChatAppCubit.get(context).sendMessage(
                                 message: messageController.text,
-                                dateTimeForOrder: DateTime.now().toString(),
-                                dateTimeForShow: DateFormat.jm().format(DateTime.now()),
+                                dateTimeForOrder: DateTime.now().toUtc().toString(),
                                 receiverID: widget.chatUID,
                               );
                               messageController.text = '';

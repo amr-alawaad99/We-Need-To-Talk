@@ -1,6 +1,7 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:we_need_to_talk/layout/cubit/cubit.dart';
 import 'package:we_need_to_talk/layout/cubit/states.dart';
 import 'package:we_need_to_talk/model/hallway_model.dart';
@@ -20,7 +21,11 @@ class HallWayScreen extends StatelessWidget {
       builder: (context) {
         cubit.getHallway();
         return BlocConsumer<ChatAppCubit, ChatAppStates>(
-          listener: (context, state) {},
+          listener: (context, state) {
+            if(state is GetUserDataSuccessState){
+              cubit.getHallway();
+            }
+          },
           builder: (context, state) {
             return Scaffold(
               drawer: const DrawerScreen(),
@@ -89,7 +94,7 @@ class HallWayScreen extends StatelessWidget {
                       'You : ${model.lastMessage}' : '${model.endName} : ${model.lastMessage}',
                     style: Theme.of(context)
                         .textTheme
-                        .caption
+                        .bodySmall
                         ?.copyWith(fontSize: 16.0),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -103,8 +108,8 @@ class HallWayScreen extends StatelessWidget {
           ),
           //date/time
           Text(
-            '${model.dateTimeForShow}',
-            style: Theme.of(context).textTheme.caption,
+            DateFormat.jm().format(DateTime.parse(model.dateTimeForOrder!).toLocal()).toString(),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),

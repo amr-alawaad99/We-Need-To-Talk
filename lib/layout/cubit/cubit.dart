@@ -92,7 +92,7 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
   UserModel? originalUser;
   void getUserData() {
     emit(GetUserDataLoadingState());
-
+    reversedHallway = [];
     print("Hiiii your uid is $uid");
     FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) {
       originalUser = UserModel.fromJson(value.data()!);
@@ -100,6 +100,7 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
       print('your bio is ${originalUser!.bio}');
       print('your pic url is ${originalUser!.profilePic}');
       emit(GetUserDataSuccessState());
+      print("Hallway size: ${reversedHallway.length}");
     }).catchError((error) {
       emit(GetUserDataErrorState(error.toString()));
     });
@@ -135,8 +136,10 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
 
   // SingOut
   void singOut() {
+    reversedHallway = [];
     FirebaseFirestore.instance.collection('users').doc(uid).update({'token': ''});
     CacheHelper.removeData(key: 'uid').then((value) {
+      uid = '';
       emit(SignOutSuccessState());
     });
   }
@@ -263,14 +266,12 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
   Future<void> sendMessage({
     required String message,
     required String dateTimeForOrder,
-    required String dateTimeForShow,
     required String receiverID,
   }) async {
 
     MessageModel messageModel = MessageModel(
       message: message,
-      dateTimeForOrder: dateTimeForOrder,
-      dateTimeForShow: dateTimeForShow,
+      dateTime: dateTimeForOrder,
       senderId: originalUser!.uid,
       receiverId: receiverID,
     );
@@ -382,7 +383,6 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
             HallwayCardModel hallwayCardModel = HallwayCardModel(
               senderId: value.docs.last['senderId'],
               endID: element.data()['uid'],
-              dateTimeForShow: value.docs.last['dateTimeForShow'],
               dateTimeForOrder: value.docs.last['dateTimeForOrder'],
               lastMessage: value.docs.last['message'],
               endName: element.data()['username'],
