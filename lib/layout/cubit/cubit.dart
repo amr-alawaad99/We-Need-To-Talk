@@ -374,7 +374,6 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
 
   // Add Hallway List to DB
   void setHallway(String receiverUid) {
-
       FirebaseFirestore.instance.collection('users').get().then((value) {
         for (var element in value.docs) {
           FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('chat').doc(element.data()['uid'])
