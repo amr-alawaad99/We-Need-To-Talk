@@ -51,6 +51,7 @@ dependencies:
   flutter_chat_list: ^1.0.6
   firebase_messaging: ^14.4.0
   http: ^0.13.5
+  ntp: ^2.0.0
 
 
 dev_dependencies:

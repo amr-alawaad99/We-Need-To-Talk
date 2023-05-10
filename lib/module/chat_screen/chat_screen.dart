@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_list/chat_list.dart';
+import 'package:ntp/ntp.dart';
 import 'package:we_need_to_talk/layout/cubit/cubit.dart';
 import 'package:we_need_to_talk/layout/cubit/states.dart';
 import 'package:we_need_to_talk/model/message_model.dart';
 
 import '../../shared/components/constants.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends StatelessWidget {
 
   final String chatUID;
   final String chatUsername;
   final String chatPicURL;
 
-  const ChatScreen(this.chatUID, this.chatUsername, this.chatPicURL, {Key? key}) : super(key: key);
+  ChatScreen(this.chatUID, this.chatUsername, this.chatPicURL, {Key? key}) : super(key: key);
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
+  DateTime ntpTime = DateTime.now();
 
-class _ChatScreenState extends State<ChatScreen> {
+  Future localNTPTime() async {
+    ntpTime = await NTP.now();
+  }
+
   @override
   Widget build(BuildContext context) {
     var messageController = TextEditingController();
     double tffHeight = 40;
     return Builder(
       builder: (context) {
-        ChatAppCubit.get(context).getMessages(receiverID: widget.chatUID);
+        ChatAppCubit.get(context).getMessages(receiverID: chatUID);
         return BlocConsumer<ChatAppCubit,ChatAppStates>(
           listener: (context, state) {},
           builder: (context, state) {
@@ -35,11 +37,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 title: Row(
                   children: [
                     CircleAvatar(
-                      backgroundImage: NetworkImage(widget.chatPicURL),
+                      backgroundImage: NetworkImage(chatPicURL),
                     ),
                     const SizedBox(width: 10.0,),
                     Expanded(
-                      child: Text(widget.chatUsername,
+                      child: Text(chatUsername,
                       overflow: TextOverflow.ellipsis,),
                     ),
                   ],
@@ -114,12 +116,18 @@ class _ChatScreenState extends State<ChatScreen> {
                             borderRadius: BorderRadius.circular(100.0),
                           ),
                           child: IconButton(
-                            onPressed: () {
-                              ChatAppCubit.get(context).sendMessage(
-                                message: messageController.text,
-                                dateTimeForOrder: DateTime.now().toUtc().toString(),
-                                receiverID: widget.chatUID,
-                              );
+                            onPressed: () async {
+                              await localNTPTime();
+                              if(messageController.text.trim().isNotEmpty) {
+                                ChatAppCubit.get(context).sendMessage(
+                                  message: messageController.text,
+                                  dateTimeForOrder: ntpTime.toUtc().toString(),
+                                  receiverID: chatUID,
+                                );
+                              }
+                              print("Current utc time from phone ${DateTime.now().toUtc()}");
+                              print("Current utc time from ntp ${ntpTime.toUtc().toString()}");
+                              print("//////////////");
                               messageController.text = '';
                             },
                             icon: const Icon(Icons.arrow_forward_ios_rounded),
