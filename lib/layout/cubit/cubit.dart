@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,7 +91,8 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
   UserModel? originalUser;
   void getUserData() {
     emit(GetUserDataLoadingState());
-    reversedHallway = [];
+    originalUser = UserModel();
+    // reversedHallway = [];
     print("Hiiii your uid is $uid");
     FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) {
       originalUser = UserModel.fromJson(value.data()!);
@@ -100,7 +100,7 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
       print('your bio is ${originalUser!.bio}');
       print('your pic url is ${originalUser!.profilePic}');
       emit(GetUserDataSuccessState());
-      print("Hallway size: ${reversedHallway.length}");
+      print("Hallway size: ${readHallway().length}");
     }).catchError((error) {
       emit(GetUserDataErrorState(error.toString()));
     });
@@ -136,7 +136,6 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
 
   // SingOut
   void singOut() {
-    reversedHallway = [];
     FirebaseFirestore.instance.collection('users').doc(uid).update({'token': ''});
     CacheHelper.removeData(key: 'uid').then((value) {
       uid = '';
@@ -296,7 +295,7 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
 
     sendPushNotification(token: token!, title: originalUser!.username!, msg: message);
 
-    setHallway();
+    setHallway(receiverID);
   }
   ///////////////////////////////////
 
@@ -367,54 +366,84 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
             messages.add(MessageModel.fromJson(element.data()));
           }
           reversedChat = messages.reversed.toList();
-          setHallway();
+          setHallway(receiverID);
           emit(GetMessageSuccessState());
     });
   }
   ///////////////////////////////////
 
   // Add Hallway List to DB
-  void setHallway() {
-    FirebaseFirestore.instance.collection('users').get().then((value) {
-      for (var element in value.docs) {
-        FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('chat').doc(element.data()['uid'])
-            .collection('messages').orderBy('dateTimeForOrder').get().then((value) {
-          if(value.size > 0){
-            HallwayCardModel hallwayCardModel = HallwayCardModel(
-              senderId: value.docs.last['senderId'],
-              endID: element.data()['uid'],
-              dateTimeForOrder: value.docs.last['dateTimeForOrder'],
-              lastMessage: value.docs.last['message'],
-              endName: element.data()['username'],
-              endPic: element.data()['picURL'],
-            );
-            FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('hallway').doc(element.data()['uid']).set(hallwayCardModel.toMap());
-          }
-        });
-      }
-    }).catchError((error){
-      emit(GetHallwayListErrorState(error.toString()));
-    });
+  void setHallway(String receiverUid) {
+
+      FirebaseFirestore.instance.collection('users').get().then((value) {
+        for (var element in value.docs) {
+          FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('chat').doc(element.data()['uid'])
+              .collection('messages').orderBy('dateTimeForOrder').get().then((value) {
+            if(value.size > 0){
+              HallwayCardModel hallwayCardModel = HallwayCardModel(
+                senderId: value.docs.last['senderId'],
+                endID: element.data()['uid'],
+                dateTimeForOrder: value.docs.last['dateTimeForOrder'],
+                lastMessage: value.docs.last['message'],
+                endName: element.data()['username'],
+                endPic: element.data()['picURL'],
+              );
+              FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('hallway').doc(element.data()['uid']).set(hallwayCardModel.toMap());
+            }
+          });
+        }
+      }).catchError((error){
+        emit(GetHallwayListErrorState(error.toString()));
+      });
+
+
+      FirebaseFirestore.instance.collection('users').get().then((value) {
+        for (var element in value.docs) {
+          FirebaseFirestore.instance.collection('users').doc(receiverUid).collection('chat').doc(element.data()['uid'])
+              .collection('messages').orderBy('dateTimeForOrder').get().then((value) {
+            if(value.size > 0){
+              HallwayCardModel hallwayCardModel = HallwayCardModel(
+                senderId: value.docs.last['senderId'],
+                endID: element.data()['uid'],
+                dateTimeForOrder: value.docs.last['dateTimeForOrder'],
+                lastMessage: value.docs.last['message'],
+                endName: element.data()['username'],
+                endPic: element.data()['picURL'],
+              );
+              FirebaseFirestore.instance.collection('users').doc(receiverUid).collection('hallway').doc(element.data()['uid']).set(hallwayCardModel.toMap());
+            }
+          });
+        }
+      }).catchError((error){
+        emit(GetHallwayListErrorState(error.toString()));
+      });
+
   }
   ///////////////////////////////////
 
   // Get Hallway List from DB irt
-  List<HallwayCardModel> reversedHallway = [];
-  void getHallway(){
-    setHallway();
-    FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('hallway').orderBy('dateTimeForOrder')
-        .snapshots().listen((event) {
-      List<HallwayCardModel> hallwayList = [];
-      reversedHallway = [];
-      for (var element in event.docs) {
-        getMessages(receiverID: element.data()['endID']);
-        hallwayList.add(HallwayCardModel.fromJson(element.data()));
-      }
-      reversedHallway = hallwayList.reversed.toList();
-      emit(GetHallwayListSuccessState());
-    });
-  }
+  // List<HallwayCardModel> reversedHallway = [];
+  // void getHallway(){
+  //   setHallway();
+  //   FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('hallway').orderBy('dateTimeForOrder')
+  //       .snapshots().listen((event) {
+  //     List<HallwayCardModel> hallwayList = [];
+  //     reversedHallway = [];
+  //     for (var element in event.docs) {
+  //       getMessages(receiverID: element.data()['endID']);
+  //       hallwayList.add(HallwayCardModel.fromJson(element.data()));
+  //     }
+  //     reversedHallway = hallwayList.reversed.toList();
+  //     emit(GetHallwayListSuccessState());
+  //   });
+  // }
   ///////////////////////////////////
+
+  Stream<List<HallwayCardModel>> readHallway(){
+    return FirebaseFirestore.instance.collection('users').doc(originalUser!.uid).collection('hallway').orderBy('dateTimeForOrder')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => HallwayCardModel.fromJson(doc.data())).toList());
+  }
 
 
 }

@@ -1,4 +1,3 @@
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -19,13 +18,8 @@ class HallWayScreen extends StatelessWidget {
     var cubit = ChatAppCubit.get(context);
     return Builder(
       builder: (context) {
-        cubit.getHallway();
         return BlocConsumer<ChatAppCubit, ChatAppStates>(
-          listener: (context, state) {
-            if(state is GetUserDataSuccessState){
-              cubit.getHallway();
-            }
-          },
+          listener: (context, state) {},
           builder: (context, state) {
             return Scaffold(
               drawer: const DrawerScreen(),
@@ -40,25 +34,40 @@ class HallWayScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              body: ConditionalBuilder(
-                condition: cubit.reversedHallway.isNotEmpty,
-                builder: (context) => Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: ListView.separated(
-                    itemBuilder: (context, index) => buildHallwayCard(cubit.reversedHallway[index] ,context),
-                    itemCount: cubit.reversedHallway.length,
-                    separatorBuilder: (context, index) => divider(),
-                  ),
-                ),
-                fallback: (context) => const Center( child: CircularProgressIndicator()),
+              body: StreamBuilder<List<HallwayCardModel>>(
+                stream: cubit.readHallway(),
+                builder: (context, snapshot) {
+                  if(snapshot.hasError){
+                    return Text('Something went wrong! ${snapshot.error}');
+                  } else if(snapshot.hasData){
+                    final hallway = snapshot.data!.reversed;
+
+                    return ListView(
+                      children: hallway.map((e) => buildHallwayCard(e, context)).toList(),
+                    );
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
               ),
+              // body: ConditionalBuilder(
+              //   condition: cubit.reversedHallway.isNotEmpty,
+              //   builder: (context) => Padding(
+              //     padding: const EdgeInsets.only(top: 10.0),
+              //     child: ListView.separated(
+              //       itemBuilder: (context, index) => buildHallwayCard(cubit.reversedHallway[index] ,context),
+              //       itemCount: cubit.reversedHallway.length,
+              //       separatorBuilder: (context, index) => divider(),
+              //     ),
+              //   ),
+              //   fallback: (context) => const Center( child: CircularProgressIndicator()),
+              // ),
             );
           },
         );
       },
     );
   }
-
 
   Widget buildHallwayCard(HallwayCardModel model, context) => InkWell(
     child: Padding(

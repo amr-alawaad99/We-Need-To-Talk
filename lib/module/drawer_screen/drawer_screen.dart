@@ -1,10 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:we_need_to_talk/layout/cubit/states.dart';
-import 'package:we_need_to_talk/model/user_model.dart';
 import 'package:we_need_to_talk/module/profile_screen/profile_screen.dart';
 import 'package:we_need_to_talk/module/settings_screen/settings_screen.dart';
 import 'package:we_need_to_talk/shared/components/components.dart';
@@ -23,8 +21,7 @@ class DrawerScreen extends StatelessWidget {
     return BlocConsumer<ChatAppCubit, ChatAppStates>(
       listener: (context, state) {
         if(state is SignOutSuccessState) {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen(),),(route) => true,);
-          ChatAppCubit.get(context).originalUser = UserModel();
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen(),),(route) => false,);
         }
       },
       builder: (context, state) {

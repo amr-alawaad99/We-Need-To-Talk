@@ -38,7 +38,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       backgroundImage: NetworkImage(widget.chatPicURL),
                     ),
                     const SizedBox(width: 10.0,),
-                    Text(widget.chatUsername),
+                    Expanded(
+                      child: Text(widget.chatUsername,
+                      overflow: TextOverflow.ellipsis,),
+                    ),
                   ],
                 ),
                 actions: [
