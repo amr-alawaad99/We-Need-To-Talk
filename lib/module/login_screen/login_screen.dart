@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:we_need_to_talk/layout/cubit/cubit.dart';
 import 'package:we_need_to_talk/layout/main_screen.dart';
+import 'package:we_need_to_talk/model/user_model.dart';
 import 'package:we_need_to_talk/module/login_screen/cubit/cubit.dart';
 import 'package:we_need_to_talk/module/login_screen/cubit/states.dart';
 import 'package:we_need_to_talk/module/register_screen/register_screen.dart';
@@ -31,6 +32,7 @@ class LoginScreen extends StatelessWidget {
           if (state is LoginSuccessState) {
             CacheHelper.saveData(key: 'uid', value: state.uid).then((value) {
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainScreen(),), (route) => false);
+              ChatAppCubit.get(context).originalUser = UserModel();
               ChatAppCubit.get(context).getUserData();    //TO GET THE NEW LOGGED IN ACCOUNT IMMEDIATELY RATHER THAN THE PREVIOUS ACCOUNT!!
             });
           }

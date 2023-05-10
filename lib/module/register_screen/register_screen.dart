@@ -5,6 +5,7 @@ import 'package:we_need_to_talk/shared/components/components.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../layout/main_screen.dart';
+import '../../model/user_model.dart';
 import '../../shared/local/cache_helper.dart';
 import 'cubit/cubit.dart';
 import 'cubit/states.dart';
@@ -31,6 +32,7 @@ class RegisterScreen extends StatelessWidget {
             CacheHelper.saveData(key: 'uid', value: state.uid)
                 .then((value) {
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainScreen(),), (route) => false);
+              ChatAppCubit.get(context).originalUser = UserModel();
               ChatAppCubit.get(context).getUserData();    //TO GET THE NEW LOGGED IN ACCOUNT IMMEDIATELY RATHER THAN THE PREVIOUS ACCOUNT!!
             });
           }

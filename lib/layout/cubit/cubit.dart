@@ -91,7 +91,6 @@ class ChatAppCubit extends Cubit<ChatAppStates> {
   UserModel? originalUser;
   void getUserData() {
     emit(GetUserDataLoadingState());
-    originalUser = UserModel();
     // reversedHallway = [];
     print("Hiiii your uid is $uid");
     FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) {
